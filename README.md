@@ -8,4 +8,4 @@
 ## Warum ich das so gelöst habe
 - Spring Boot nimmt einem auch bei einem so kleinen Projekt etwas Arbeit ab. (Logging, Konfigurierbarkeit)
 - Eine Bearbeitung der Daten war ja nicht gefordert, daher habe ich keine Konvertierung der Felder nach  Java Objekten durchgeführt sondern alles bei String belassen.
-- Da es sich um sehr viele Felder handelt, habe cih nur in eine recht abstrakte Struktur geparsed. (model.row.*). Dadurch konnte dann auch die Umwandlung in das Ziel JSON ohne viel Mapping Code erfolgen.
+- Da es sich um sehr viele Felder handelt, habe ich nur in eine recht abstrakte Struktur geparsed. (model.row.*). Dadurch konnte dann auch die Umwandlung in das Ziel JSON ohne viel Mapping Code erfolgen.

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RowParser {
 
-    static final String FIELD_SEPARATOR = "\\|";
+    private static final String FIELD_SEPARATOR = "\\|";
 
     /**
      * @param line      the raw line without the record delimiter
