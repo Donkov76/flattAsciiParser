@@ -1,11 +1,12 @@
-package de.donkov.flatasciiparser.service;
+package de.donkov.flatasciiparser.service.schema;
+
+import de.donkov.flatasciiparser.model.json.JsonDocument;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.Error;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
-import de.donkov.flatasciiparser.output.JsonDocument;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;

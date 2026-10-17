@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A POS record: a single line item of a document.
  */
-public non-sealed class PosRow extends Row {
+public final class PosRow extends Row {
 
     public enum Field implements RowField {
         OPOLDF(1, "Line item counter"),
@@ -39,6 +39,11 @@ public non-sealed class PosRow extends Row {
 
         public String getDescription() {
             return description;
+        }
+
+        @Override
+        public RecordType getRecordType() {
+            return RecordType.POS;
         }
     }
 

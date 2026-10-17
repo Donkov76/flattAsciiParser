@@ -8,8 +8,8 @@ import de.donkov.flatasciiparser.model.row.AlcRow;
 import de.donkov.flatasciiparser.model.row.PosRow;
 import de.donkov.flatasciiparser.model.row.Row;
 import de.donkov.flatasciiparser.model.row.TextRow;
-import de.donkov.flatasciiparser.service.FlatfileFormatException;
-import de.donkov.flatasciiparser.service.RowParser;
+import de.donkov.flatasciiparser.service.parser.FlatfileFormatException;
+import de.donkov.flatasciiparser.service.parser.RowParser;
 import org.junit.jupiter.api.Test;
 
 /**

@@ -1,4 +1,6 @@
-package de.donkov.flatasciiparser.output;
+package de.donkov.flatasciiparser.service.output;
+
+import de.donkov.flatasciiparser.model.json.JsonDocument;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

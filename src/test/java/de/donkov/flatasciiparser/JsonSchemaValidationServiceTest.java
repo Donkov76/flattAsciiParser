@@ -1,18 +1,19 @@
 package de.donkov.flatasciiparser;
 
+import de.donkov.flatasciiparser.model.json.JsonDocument;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.donkov.flatasciiparser.model.Document;
-import de.donkov.flatasciiparser.output.DocumentJsonConverter;
-import de.donkov.flatasciiparser.output.EmptyValueMode;
-import de.donkov.flatasciiparser.output.JsonDocument;
-import de.donkov.flatasciiparser.service.DocumentParser;
-import de.donkov.flatasciiparser.service.FlatfileParserService;
-import de.donkov.flatasciiparser.service.JsonSchemaValidationService;
-import de.donkov.flatasciiparser.service.RowParser;
+import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
+import de.donkov.flatasciiparser.service.output.EmptyValueMode;
+import de.donkov.flatasciiparser.service.parser.DocumentParser;
+import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
+import de.donkov.flatasciiparser.service.schema.JsonSchemaValidationService;
+import de.donkov.flatasciiparser.service.parser.RowParser;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -24,19 +25,34 @@ import org.junit.jupiter.api.Test;
  */
 class JsonSchemaValidationServiceTest {
 
-    private final DocumentJsonConverter documentJsonConverter = new DocumentJsonConverter(EmptyValueMode.EMPTY_STRING);
+    private final DocumentJsonConverterService documentJsonConverter = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
     private final JsonSchemaValidationService validationService =
             new JsonSchemaValidationService(new ObjectMapper(), true);
 
     private List<Document> parseSampleFile() throws IOException, URISyntaxException {
-        var url = getClass().getClassLoader().getResource(
-                "flatfile/4311560000000_IV_4260043070002_20200527133435");
+        return parseFlatfile("flatfile/4311560000000_IV_4260043070002_20200527133435");
+    }
+
+    private List<Document> parseFlatfile(String resource)
+            throws IOException, URISyntaxException {
+        var url = getClass().getClassLoader().getResource(resource);
         if (url == null) {
-            throw new IllegalStateException("Sample flatfile not found in test resources");
+            throw new IllegalStateException("Sample flatfile not found in test resources: " + resource);
         }
         FlatfileParserService flatfileParserService = new FlatfileParserService(new RowParser());
         return new DocumentParser()
                 .parse(flatfileParserService.parseRecords(Path.of(url.toURI())));
+    }
+
+    @Test
+    void documentWithPosAllowancesIsValid() throws IOException, URISyntaxException {
+        // The original sample flatfile contains no POS with ALC records, so a
+        // separate sample flatfile covers this variant
+        JsonDocument json = documentJsonConverter.convert(
+                parseFlatfile("flatfile/sample-pos-alc.txt").getFirst());
+
+        assertTrue(validationService.validate(json).isEmpty(),
+                "A document with POS_ALC records is valid against the JSON schema");
     }
 
     @Test
@@ -54,7 +70,7 @@ class JsonSchemaValidationServiceTest {
 
     @Test
     void allSampleDocumentsAreValidInNullMode() throws IOException, URISyntaxException {
-        DocumentJsonConverter nullModeConverter = new DocumentJsonConverter(EmptyValueMode.NULL);
+        DocumentJsonConverterService nullModeConverter = new DocumentJsonConverterService(EmptyValueMode.NULL);
         List<Document> documents = parseSampleFile();
 
         for (Document document : documents) {

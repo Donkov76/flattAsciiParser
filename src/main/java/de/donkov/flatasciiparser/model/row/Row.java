@@ -1,6 +1,7 @@
 package de.donkov.flatasciiparser.model.row;
 
 import de.donkov.flatasciiparser.model.RecordType;
+
 import java.util.List;
 
 /**
@@ -44,7 +45,7 @@ public abstract sealed class Row permits HeadRow, PosRow, TextRow, AlcRow {
         return fields;
     }
 
-    protected String getField(int index) {
+    private String getField(int index) {
         return fields.get(index);
     }
 
@@ -57,6 +58,14 @@ public abstract sealed class Row permits HeadRow, PosRow, TextRow, AlcRow {
      * @return the value of the field
      */
     public String getFieldValue(RowField field) {
+        if (this.type != field.getRecordType()) {
+            throw new IllegalArgumentException("Invalid Field %s (%s) for Row of type %s".formatted(field, field.getDescription(), this.type));
+        }
+
+        if (field.getPos() >= fields.size()) {
+            throw new IllegalArgumentException("Invalid Field Pos %s (%s-%s) for Row of type %s".formatted(field.getPos(), field.getDescription(), field, this.type));
+        }
+
         return getField(field.getPos());
     }
 

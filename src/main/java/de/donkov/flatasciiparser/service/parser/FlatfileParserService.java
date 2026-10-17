@@ -1,4 +1,4 @@
-package de.donkov.flatasciiparser.service;
+package de.donkov.flatasciiparser.service.parser;
 
 import de.donkov.flatasciiparser.model.row.Row;
 import java.io.BufferedReader;

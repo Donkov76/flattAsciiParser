@@ -10,10 +10,10 @@ import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.row.TextRow;
 import de.donkov.flatasciiparser.model.row.AlcRow;
 import de.donkov.flatasciiparser.model.row.Row;
-import de.donkov.flatasciiparser.service.DocumentParser;
-import de.donkov.flatasciiparser.service.FlatfileFormatException;
-import de.donkov.flatasciiparser.service.FlatfileParserService;
-import de.donkov.flatasciiparser.service.RowParser;
+import de.donkov.flatasciiparser.service.parser.DocumentParser;
+import de.donkov.flatasciiparser.service.parser.FlatfileFormatException;
+import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
+import de.donkov.flatasciiparser.service.parser.RowParser;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -30,10 +30,14 @@ class DocumentParserTest {
     private final DocumentParser documentParser = new DocumentParser();
 
     private List<Document> parseSampleFile() throws IOException, URISyntaxException {
-        var url = getClass().getClassLoader().getResource(
-                "flatfile/4311560000000_IV_4260043070002_20200527133435");
+        return parseFlatfile("flatfile/4311560000000_IV_4260043070002_20200527133435");
+    }
+
+    private List<Document> parseFlatfile(String resource)
+            throws IOException, URISyntaxException {
+        var url = getClass().getClassLoader().getResource(resource);
         if (url == null) {
-            throw new IllegalStateException("Sample flatfile not found in test resources");
+            throw new IllegalStateException("Sample flatfile not found in test resources: " + resource);
         }
         return documentParser.parse(flatfileParserService.parseRecords(Path.of(url.toURI())));
     }
@@ -78,6 +82,32 @@ class DocumentParserTest {
                 "TEXT records after a POS record belong to the line item");
         assertEquals(4, document.getHeadTexts().size(),
                 "TEXT records before the first POS record belong to the header");
+    }
+
+    @Test
+    void assignsAlcRecordsAfterPosToLineItem() throws IOException, URISyntaxException {
+        // The original sample flatfile contains no POS with ALC records, so a
+        // separate sample flatfile covers this variant
+        Document document = parseFlatfile("flatfile/sample-pos-alc.txt").getFirst();
+
+        assertEquals(0, document.getHeadTexts().size(),
+                "TEXT records after a POS record belong to the line item, not the header");
+        assertEquals(0, document.getHeadAllowances().size(),
+                "ALC records after a POS record belong to the line item, not the header");
+        assertEquals(2, document.getLineItems().size());
+
+        LineItem firstItem = document.getLineItems().getFirst();
+        assertEquals(1, firstItem.getAllowances().size(),
+                "The ALC record between the two POS records belongs to the first line item");
+        assertEquals("C", firstItem.getAllowances().getFirst()
+                .getFieldValue(de.donkov.flatasciiparser.model.row.AlcRow.Field.OZAKZA));
+        assertEquals(1, firstItem.getTexts().size());
+
+        LineItem secondItem = document.getLineItems().get(1);
+        assertEquals(1, secondItem.getAllowances().size(),
+                "ALC records at the end of the document belong to the last line item");
+        assertEquals("A", secondItem.getAllowances().getFirst()
+                .getFieldValue(de.donkov.flatasciiparser.model.row.AlcRow.Field.OZAKZA));
     }
 
     @Test

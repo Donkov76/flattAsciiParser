@@ -1,4 +1,4 @@
-package de.donkov.flatasciiparser.service;
+package de.donkov.flatasciiparser.service.parser;
 
 /**
  * Thrown when a line of the flatfile does not conform to the file structure

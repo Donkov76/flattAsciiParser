@@ -1,4 +1,4 @@
-package de.donkov.flatasciiparser.output;
+package de.donkov.flatasciiparser.service.output;
 
 import org.springframework.util.StringUtils;
 

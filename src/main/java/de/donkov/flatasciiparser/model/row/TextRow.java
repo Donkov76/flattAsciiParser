@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A TEXT record: a text line in the header part or as part of a line item.
  */
-public non-sealed class TextRow extends Row {
+public final class TextRow extends Row {
 
     public enum Field implements RowField {
         OTXTXT1(1, "Text line 1"),
@@ -30,6 +30,11 @@ public non-sealed class TextRow extends Row {
 
         public String getDescription() {
             return description;
+        }
+
+        @Override
+        public RecordType getRecordType() {
+            return RecordType.TEXT;
         }
     }
 

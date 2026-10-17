@@ -1,17 +1,18 @@
 package de.donkov.flatasciiparser;
 
+import de.donkov.flatasciiparser.model.json.JsonDocument;
+
 import java.nio.file.Path;
 import java.util.List;
 
 import de.donkov.flatasciiparser.model.Document;
 import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.row.Row;
-import de.donkov.flatasciiparser.output.DocumentJsonConverter;
-import de.donkov.flatasciiparser.output.JsonDocument;
-import de.donkov.flatasciiparser.output.JsonFileWriter;
-import de.donkov.flatasciiparser.service.DocumentParser;
-import de.donkov.flatasciiparser.service.FlatfileParserService;
-import de.donkov.flatasciiparser.service.JsonSchemaValidationService;
+import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
+import de.donkov.flatasciiparser.service.output.JsonFileWriter;
+import de.donkov.flatasciiparser.service.parser.DocumentParser;
+import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
+import de.donkov.flatasciiparser.service.schema.JsonSchemaValidationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -39,14 +40,14 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
 
     private final FlatfileParserService flatfileParserService;
     private final DocumentParser documentParser;
-    private final DocumentJsonConverter documentJsonConverter;
+    private final DocumentJsonConverterService documentJsonConverter;
     private final JsonFileWriter jsonFileWriter;
     private final JsonSchemaValidationService jsonSchemaValidationService;
 
     private int exitCode = EXIT_OK;
 
     public FlatAsciiParserApplication(FlatfileParserService flatfileParserService, DocumentParser documentParser,
-            DocumentJsonConverter documentJsonConverter, JsonFileWriter jsonFileWriter,
+            DocumentJsonConverterService documentJsonConverter, JsonFileWriter jsonFileWriter,
             JsonSchemaValidationService jsonSchemaValidationService) {
         this.flatfileParserService = flatfileParserService;
         this.documentParser = documentParser;

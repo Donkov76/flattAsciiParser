@@ -1,20 +1,21 @@
 package de.donkov.flatasciiparser;
 
+import de.donkov.flatasciiparser.model.json.JsonDocument;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import de.donkov.flatasciiparser.model.Document;
-import de.donkov.flatasciiparser.output.DocumentJsonConverter;
-import de.donkov.flatasciiparser.output.EmptyValueMode;
-import de.donkov.flatasciiparser.output.JsonDocument;
+import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
+import de.donkov.flatasciiparser.service.output.EmptyValueMode;
 import de.donkov.flatasciiparser.model.row.AlcRow;
 import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.row.PosRow;
 import de.donkov.flatasciiparser.model.row.Row;
 import de.donkov.flatasciiparser.model.row.RowField;
 import de.donkov.flatasciiparser.model.row.TextRow;
-import de.donkov.flatasciiparser.service.DocumentParser;
-import de.donkov.flatasciiparser.service.FlatfileParserService;
-import de.donkov.flatasciiparser.service.RowParser;
+import de.donkov.flatasciiparser.service.parser.DocumentParser;
+import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
+import de.donkov.flatasciiparser.service.parser.RowParser;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -34,7 +35,7 @@ class DocumentConversionLogTest {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentConversionLogTest.class);
 
-    private final DocumentJsonConverter documentJsonConverter = new DocumentJsonConverter(EmptyValueMode.EMPTY_STRING);
+    private final DocumentJsonConverterService documentJsonConverter = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
     private final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     @Test

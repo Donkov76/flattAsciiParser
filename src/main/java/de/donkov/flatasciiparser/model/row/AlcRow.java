@@ -7,7 +7,7 @@ import java.util.List;
  * An ALC record: a discount or allowance in the header part or as part of a
  * line item.
  */
-public non-sealed class AlcRow extends Row {
+public final class AlcRow extends Row {
 
     public enum Field implements RowField {
         OZAKZA(1, "Allowance or discount"),
@@ -31,6 +31,12 @@ public non-sealed class AlcRow extends Row {
 
         public String getDescription() {
             return description;
+        }
+
+
+        @Override
+        public RecordType getRecordType() {
+            return RecordType.ALC;
         }
     }
 

@@ -1,4 +1,8 @@
-package de.donkov.flatasciiparser.output;
+package de.donkov.flatasciiparser.service.output;
+
+import de.donkov.flatasciiparser.model.json.JsonDocument;
+
+import de.donkov.flatasciiparser.model.json.JsonLineItem;
 
 import de.donkov.flatasciiparser.model.Document;
 import de.donkov.flatasciiparser.model.LineItem;
@@ -25,11 +29,11 @@ import org.springframework.stereotype.Component;
  * {@code flatasciiparser.output.empty-values}.
  */
 @Component
-public class DocumentJsonConverter {
+public class DocumentJsonConverterService {
 
     private final EmptyValueMode emptyValueMode;
 
-    public DocumentJsonConverter(
+    public DocumentJsonConverterService(
             @Value("${flatasciiparser.output.empty-values:EMPTY_STRING}") EmptyValueMode emptyValueMode) {
         this.emptyValueMode = emptyValueMode;
     }

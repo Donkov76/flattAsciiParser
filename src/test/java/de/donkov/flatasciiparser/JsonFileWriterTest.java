@@ -1,17 +1,19 @@
 package de.donkov.flatasciiparser;
 
+import de.donkov.flatasciiparser.model.json.JsonDocument;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.donkov.flatasciiparser.model.Document;
-import de.donkov.flatasciiparser.output.DocumentJsonConverter;
-import de.donkov.flatasciiparser.output.EmptyValueMode;
-import de.donkov.flatasciiparser.output.JsonFileWriter;
-import de.donkov.flatasciiparser.service.DocumentParser;
-import de.donkov.flatasciiparser.service.FlatfileParserService;
-import de.donkov.flatasciiparser.service.RowParser;
+import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
+import de.donkov.flatasciiparser.service.output.EmptyValueMode;
+import de.donkov.flatasciiparser.service.output.JsonFileWriter;
+import de.donkov.flatasciiparser.service.parser.DocumentParser;
+import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
+import de.donkov.flatasciiparser.service.parser.RowParser;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -25,7 +27,7 @@ import org.junit.jupiter.api.io.TempDir;
  */
 class JsonFileWriterTest {
 
-    private final DocumentJsonConverter documentJsonConverter = new DocumentJsonConverter(EmptyValueMode.EMPTY_STRING);
+    private final DocumentJsonConverterService documentJsonConverter = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
     private final JsonFileWriter jsonFileWriter = new JsonFileWriter(new ObjectMapper());
 
     @TempDir

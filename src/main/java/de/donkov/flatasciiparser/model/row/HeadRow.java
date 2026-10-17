@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A HEAD record: the header of a document with the invoice header fields.
  */
-public non-sealed class HeadRow extends Row {
+public final class HeadRow extends Row {
 
     public enum Field implements RowField {
         OHTRCP(1, "GLN recipient"),
@@ -71,6 +71,11 @@ public non-sealed class HeadRow extends Row {
 
         public String getDescription() {
             return description;
+        }
+
+        @Override
+        public RecordType getRecordType() {
+            return RecordType.HEAD;
         }
     }
 

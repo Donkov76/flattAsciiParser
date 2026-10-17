@@ -1,16 +1,18 @@
 package de.donkov.flatasciiparser;
 
+import de.donkov.flatasciiparser.model.json.JsonDocument;
+
+import de.donkov.flatasciiparser.model.json.JsonLineItem;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import de.donkov.flatasciiparser.model.Document;
-import de.donkov.flatasciiparser.output.DocumentJsonConverter;
-import de.donkov.flatasciiparser.output.EmptyValueMode;
-import de.donkov.flatasciiparser.output.JsonDocument;
-import de.donkov.flatasciiparser.output.JsonLineItem;
-import de.donkov.flatasciiparser.service.DocumentParser;
-import de.donkov.flatasciiparser.service.FlatfileParserService;
-import de.donkov.flatasciiparser.service.RowParser;
+import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
+import de.donkov.flatasciiparser.service.output.EmptyValueMode;
+import de.donkov.flatasciiparser.service.parser.DocumentParser;
+import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
+import de.donkov.flatasciiparser.service.parser.RowParser;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -20,11 +22,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for {@link DocumentJsonConverter} against the sample flatfile.
+ * Tests for {@link DocumentJsonConverterService} against the sample flatfile.
  */
-class DocumentJsonConverterTest {
+class DocumentJsonConverterServiceTest {
 
-    private final DocumentJsonConverter documentJsonConverter = new DocumentJsonConverter(EmptyValueMode.EMPTY_STRING);
+    private final DocumentJsonConverterService documentJsonConverter = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
 
     private List<Document> documents;
 
@@ -105,8 +107,43 @@ class DocumentJsonConverterTest {
     }
 
     @Test
+    void mapsLineItemWithAllowances() throws IOException, URISyntaxException {
+        // The original sample flatfile contains no POS with ALC records, so a
+        // separate sample flatfile covers this variant
+        Document document = parseFlatfile("flatfile/sample-pos-alc.txt").getFirst();
+        JsonDocument json = documentJsonConverter.convert(document);
+
+        List<JsonLineItem> lineItems = (List<JsonLineItem>) json.get(JsonDocument.POS);
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> firstItemAllowances =
+                (List<Map<String, String>>) lineItems.getFirst().get(JsonLineItem.POS_ALC);
+        assertEquals(1, firstItemAllowances.size());
+        assertEquals("C", firstItemAllowances.getFirst().get("OZAKZA"));
+        assertEquals("4,80", firstItemAllowances.getFirst().get("OZAPROR"));
+        assertEquals("DI", firstItemAllowances.getFirst().get("OZAART"));
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> secondItemAllowances =
+                (List<Map<String, String>>) lineItems.get(1).get(JsonLineItem.POS_ALC);
+        assertEquals(1, secondItemAllowances.size());
+        assertEquals("A", secondItemAllowances.getFirst().get("OZAKZA"));
+    }
+
+    private List<Document> parseFlatfile(String resource)
+            throws IOException, URISyntaxException {
+        var url = getClass().getClassLoader().getResource(resource);
+        if (url == null) {
+            throw new IllegalStateException("Sample flatfile not found in test resources: " + resource);
+        }
+        FlatfileParserService flatfileParserService = new FlatfileParserService(new RowParser());
+        return new DocumentParser()
+                .parse(flatfileParserService.parseRecords(Path.of(url.toURI())));
+    }
+
+    @Test
     void mapsEmptyValuesAsNullWhenConfigured() {
-        DocumentJsonConverter nullModeConverter = new DocumentJsonConverter(EmptyValueMode.NULL);
+        DocumentJsonConverterService nullModeConverter = new DocumentJsonConverterService(EmptyValueMode.NULL);
         JsonDocument json = nullModeConverter.convert(documents.getFirst());
 
         assertNull(json.get("OHTPDF"), "Empty HEAD field becomes JSON null in NULL mode");

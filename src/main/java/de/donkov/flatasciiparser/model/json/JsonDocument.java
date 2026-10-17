@@ -1,4 +1,4 @@
-package de.donkov.flatasciiparser.output;
+package de.donkov.flatasciiparser.model.json;
 
 import java.util.LinkedHashMap;
 import java.util.List;
