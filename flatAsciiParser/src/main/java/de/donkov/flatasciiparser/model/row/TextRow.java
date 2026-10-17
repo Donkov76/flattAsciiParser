@@ -8,7 +8,7 @@ import java.util.List;
  */
 public non-sealed class TextRow extends Row {
 
-    public enum Field {
+    public enum Field implements RowField {
         OTXTXT1(1, "Text line 1"),
         OTXTXT2(2, "Text line 2"),
         OTXTXT3(3, "Text line 3"),
@@ -35,9 +35,5 @@ public non-sealed class TextRow extends Row {
 
     TextRow(List<String> fields) {
         super(RecordType.TEXT, fields);
-    }
-
-    public String getFieldValue(Field field) {
-        return getField(field.pos);
     }
 }

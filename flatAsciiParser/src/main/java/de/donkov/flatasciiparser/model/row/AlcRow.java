@@ -9,7 +9,7 @@ import java.util.List;
  */
 public non-sealed class AlcRow extends Row {
 
-    public enum Field {
+    public enum Field implements RowField {
         OZAKZA(1, "Allowance or discount"),
         OZAART(2, "Discount type"),
         OZAPRO(3, "Percentage"),
@@ -36,9 +36,5 @@ public non-sealed class AlcRow extends Row {
 
     AlcRow(List<String> fields) {
         super(RecordType.ALC, fields);
-    }
-
-    public String getFieldValue(Field field) {
-        return getField(field.pos);
     }
 }

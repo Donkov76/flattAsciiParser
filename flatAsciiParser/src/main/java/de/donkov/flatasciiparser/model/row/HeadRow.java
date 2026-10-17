@@ -8,7 +8,7 @@ import java.util.List;
  */
 public non-sealed class HeadRow extends Row {
 
-    public enum Field {
+    public enum Field implements RowField {
         OHTRCP(1, "GLN recipient"),
         OHTSND(2, "GLN originator"),
         OHTDOT(3, "Document type"),
@@ -76,9 +76,5 @@ public non-sealed class HeadRow extends Row {
 
     HeadRow(List<String> fields) {
         super(RecordType.HEAD, fields);
-    }
-
-    public String getFieldValue(Field field) {
-        return getField(field.pos);
     }
 }

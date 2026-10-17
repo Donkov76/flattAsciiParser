@@ -8,7 +8,7 @@ import java.util.List;
  */
 public non-sealed class PosRow extends Row {
 
-    public enum Field {
+    public enum Field implements RowField {
         OPOLDF(1, "Line item counter"),
         OPOEAN(2, "EAN article number"),
         OPOSA(3, "Supplier article number"),
@@ -44,9 +44,5 @@ public non-sealed class PosRow extends Row {
 
     PosRow(List<String> fields) {
         super(RecordType.POS, fields);
-    }
-
-    public String getFieldValue(Field field) {
-        return getField(field.pos);
     }
 }

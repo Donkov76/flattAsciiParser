@@ -52,6 +52,14 @@ public abstract sealed class Row permits HeadRow, PosRow, TextRow, AlcRow {
         return getField(0);
     }
 
+    /**
+     * @param field a field of this row's record type
+     * @return the value of the field
+     */
+    public String   getFieldValue(RowField field) {
+        return getField(field.getPos());
+    }
+
     @Override
     public String toString() {
         return String.join("|", fields);
