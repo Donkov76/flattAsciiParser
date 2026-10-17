@@ -1,0 +1,114 @@
+package de.donkov.flatasciiparser;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import de.donkov.flatasciiparser.model.Document;
+import de.donkov.flatasciiparser.model.LineItem;
+import de.donkov.flatasciiparser.model.RecordType;
+import de.donkov.flatasciiparser.model.row.HeadRow;
+import de.donkov.flatasciiparser.model.row.TextRow;
+import de.donkov.flatasciiparser.model.row.AlcRow;
+import de.donkov.flatasciiparser.model.row.Row;
+import de.donkov.flatasciiparser.service.DocumentParser;
+import de.donkov.flatasciiparser.service.FlatfileFormatException;
+import de.donkov.flatasciiparser.service.FlatfileParserService;
+import de.donkov.flatasciiparser.service.RowParser;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Tests for {@link DocumentParser} against the sample flatfile.
+ */
+class DocumentParserTest {
+
+    private final RowParser rowParser = new RowParser();
+    private final FlatfileParserService flatfileParserService = new FlatfileParserService(rowParser);
+    private final DocumentParser documentParser = new DocumentParser();
+
+    private List<Document> parseSampleFile() throws IOException, URISyntaxException {
+        var url = getClass().getClassLoader().getResource(
+                "flatfile/4311560000000_IV_4260043070002_20200527133435");
+        if (url == null) {
+            throw new IllegalStateException("Sample flatfile not found in test resources");
+        }
+        return documentParser.parse(flatfileParserService.parseRecords(Path.of(url.toURI())));
+    }
+
+    @Test
+    void groupsSampleFileIntoDocuments() throws IOException, URISyntaxException {
+        List<Document> documents = parseSampleFile();
+
+        assertEquals(15, documents.size(), "The sample flatfile contains 15 documents");
+    }
+
+    @Test
+    void groupsHeaderRecordsOfFirstDocument() throws IOException, URISyntaxException {
+        Document document = parseSampleFile().getFirst();
+
+        assertEquals("IX169381", document.getHead().getFieldValue(HeadRow.Field.OHTDON));
+        assertEquals(5, document.getHeadTexts().size());
+        assertEquals(1, document.getHeadAllowances().size());
+        assertEquals(1, document.getLineItems().size());
+    }
+
+    @Test
+    void groupsLineItemsOfSecondDocument() throws IOException, URISyntaxException {
+        Document document = parseSampleFile().get(1);
+
+        assertEquals("IX169408", document.getHead().getFieldValue(HeadRow.Field.OHTDON));
+        assertEquals(0, document.getHeadTexts().size());
+        assertEquals(1, document.getHeadAllowances().size());
+        assertEquals(6, document.getLineItems().size());
+    }
+
+    @Test
+    void assignsTextsAfterPosToLineItem() throws IOException, URISyntaxException {
+        // Document IX169481: the first line item is followed by 4 TEXT records
+        Document document = parseSampleFile().stream()
+                .filter(d -> "IX169481".equals(d.getHead().getFieldValue(HeadRow.Field.OHTDON)))
+                .findFirst()
+                .orElseThrow();
+
+        LineItem firstItem = document.getLineItems().getFirst();
+        assertEquals(4, firstItem.getTexts().size(),
+                "TEXT records after a POS record belong to the line item");
+        assertEquals(4, document.getHeadTexts().size(),
+                "TEXT records before the first POS record belong to the header");
+    }
+
+    @Test
+    void rejectsRecordBeforeFirstHeadRecord() {
+        Row textRow = Row.of(RecordType.TEXT,
+                List.of("TEXT", "Kunde:", "", "", "", "", "GE"));
+
+        FlatfileFormatException exception = assertThrows(FlatfileFormatException.class,
+                () -> documentParser.parse(List.of(textRow)));
+
+        assertEquals(1, exception.getLineNumber());
+    }
+
+    @Test
+    void documentsAreImmutable() throws IOException, URISyntaxException {
+        Document document = parseSampleFile().getFirst();
+        TextRow textRow = (TextRow) Row.of(RecordType.TEXT,
+                List.of("TEXT", "Neuer Text", "", "", "", "", "GE"));
+        AlcRow alcRow = (AlcRow) Row.of(RecordType.ALC,
+                List.of("ALC", "C", "DI", "0,50", "56,58", "0,28", "0,00"));
+
+        // List.copyOf in the constructors already yields unmodifiable lists
+        assertThrows(UnsupportedOperationException.class,
+                () -> document.getHeadTexts().add(textRow));
+        assertThrows(UnsupportedOperationException.class,
+                () -> document.getHeadAllowances().add(alcRow));
+        assertThrows(UnsupportedOperationException.class,
+                () -> document.getLineItems().add(null));
+        assertThrows(UnsupportedOperationException.class,
+                () -> document.getLineItems().getFirst().getTexts().add(textRow));
+        assertThrows(UnsupportedOperationException.class,
+                () -> document.getLineItems().getFirst().getAllowances().add(alcRow));
+    }
+}

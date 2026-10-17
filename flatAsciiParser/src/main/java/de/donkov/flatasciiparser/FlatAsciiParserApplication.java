@@ -3,6 +3,10 @@ package de.donkov.flatasciiparser;
 import java.nio.file.Path;
 import java.util.List;
 
+import de.donkov.flatasciiparser.model.Document;
+import de.donkov.flatasciiparser.model.row.HeadRow;
+import de.donkov.flatasciiparser.model.row.Row;
+import de.donkov.flatasciiparser.service.DocumentParser;
 import de.donkov.flatasciiparser.service.FlatfileParserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +33,13 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
     private static final int EXIT_USAGE_ERROR = 2;
 
     private final FlatfileParserService flatfileParserService;
+    private final DocumentParser documentParser;
 
     private int exitCode = EXIT_OK;
 
-    public FlatAsciiParserApplication(FlatfileParserService flatfileParserService) {
+    public FlatAsciiParserApplication(FlatfileParserService flatfileParserService, DocumentParser documentParser) {
         this.flatfileParserService = flatfileParserService;
+        this.documentParser = documentParser;
     }
 
     static void main(String[] args) {
@@ -51,11 +57,18 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
 
         Path inputFile = Path.of(nonOptionArgs.getFirst());
         try {
-            List<String> records = flatfileParserService.parseRecords(inputFile);
-            for (int i = 0; i < records.size(); i++) {
-                log.info("Record {}: {}", i + 1, records.get(i));
+            List<Row> records = flatfileParserService.parseRecords(inputFile);
+            List<Document> documents = documentParser.parse(records);
+            for (int i = 0; i < documents.size(); i++) {
+                Document document = documents.get(i);
+                log.info("Document {} ({}): {} line items, {} head texts, {} head allowances",
+                        i + 1,
+                        document.getHead().getFieldValue(HeadRow.Field.OHTDON),
+                        document.getLineItems().size(),
+                        document.getHeadTexts().size(),
+                        document.getHeadAllowances().size());
             }
-            log.info("Records read: {}", records.size());
+            log.info("Documents read: {}", documents.size());
         } catch (Exception e) {
             log.error("Error while reading input file '{}': {}", inputFile, e.getMessage());
             exitCode = EXIT_READ_ERROR;
