@@ -1,10 +1,10 @@
 package de.donkov.flatasciiparser;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.ExitCodeGenerator;
@@ -20,6 +20,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGenerator {
+
+    private static final Logger log = LoggerFactory.getLogger(FlatAsciiParserApplication.class);
 
     private static final int EXIT_OK = 0;
     private static final int EXIT_READ_ERROR = 1;
@@ -41,7 +43,7 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
     public void run(ApplicationArguments args) {
         List<String> nonOptionArgs = args.getNonOptionArgs();
         if (nonOptionArgs.size() != 1) {
-            System.err.println("Usage: java flatAsciiParser <input-file>");
+            log.error("Usage: java flatAsciiParser <input-file> - the application expects exactly one parameter: the name of the input file.");
             exitCode = EXIT_USAGE_ERROR;
             return;
         }
@@ -50,11 +52,11 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
         try {
             List<String> records = flatfileParserService.parseRecords(inputFile);
             for (int i = 0; i < records.size(); i++) {
-                System.out.println("Record " + (i + 1) + ": " + records.get(i));
+                log.info("Record {}: {}", i + 1, records.get(i));
             }
-            System.out.println("Records read: " + records.size());
+            log.info("Records read: {}", records.size());
         } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
+            log.error("Error while reading input file '{}': {}", inputFile, e.getMessage());
             exitCode = EXIT_READ_ERROR;
         }
     }
