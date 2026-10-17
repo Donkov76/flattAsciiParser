@@ -6,6 +6,8 @@ import java.util.List;
 import de.donkov.flatasciiparser.model.Document;
 import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.row.Row;
+import de.donkov.flatasciiparser.output.DocumentJsonConverter;
+import de.donkov.flatasciiparser.output.JsonFileWriter;
 import de.donkov.flatasciiparser.service.DocumentParser;
 import de.donkov.flatasciiparser.service.FlatfileParserService;
 import org.slf4j.Logger;
@@ -34,12 +36,17 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
 
     private final FlatfileParserService flatfileParserService;
     private final DocumentParser documentParser;
+    private final DocumentJsonConverter documentJsonConverter;
+    private final JsonFileWriter jsonFileWriter;
 
     private int exitCode = EXIT_OK;
 
-    public FlatAsciiParserApplication(FlatfileParserService flatfileParserService, DocumentParser documentParser) {
+    public FlatAsciiParserApplication(FlatfileParserService flatfileParserService, DocumentParser documentParser,
+            DocumentJsonConverter documentJsonConverter, JsonFileWriter jsonFileWriter) {
         this.flatfileParserService = flatfileParserService;
         this.documentParser = documentParser;
+        this.documentJsonConverter = documentJsonConverter;
+        this.jsonFileWriter = jsonFileWriter;
     }
 
     static void main(String[] args) {
@@ -61,18 +68,32 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
             List<Document> documents = documentParser.parse(records);
             for (int i = 0; i < documents.size(); i++) {
                 Document document = documents.get(i);
-                log.info("Document {} ({}): {} line items, {} head texts, {} head allowances",
+                String ohtdon = document.getHead().getFieldValue(HeadRow.Field.OHTDON);
+                Path outputFile = outputFileName(inputFile, ohtdon);
+                jsonFileWriter.write(documentJsonConverter.convert(document), outputFile);
+                log.info("Document {} ({}): {} line items, {} head texts, {} head allowances -> {}",
                         i + 1,
-                        document.getHead().getFieldValue(HeadRow.Field.OHTDON),
+                        ohtdon,
                         document.getLineItems().size(),
                         document.getHeadTexts().size(),
-                        document.getHeadAllowances().size());
+                        document.getHeadAllowances().size(),
+                        outputFile);
             }
-            log.info("Documents read: {}", documents.size());
+            log.info("Documents written: {}", documents.size());
         } catch (Exception e) {
-            log.error("Error while reading input file '{}': {}", inputFile, e.getMessage());
+            log.error("Error while processing input file '{}': {}", inputFile, e.getMessage());
             exitCode = EXIT_READ_ERROR;
         }
+    }
+
+    /**
+     * Builds the output file name according to the task specification:
+     * input file name + "_" + ${OHTDON} + ".json". The file is written to the
+     * directory the application was started from.
+     */
+    static Path outputFileName(Path inputFile, String ohtdon) {
+        String inputFileName = inputFile.getFileName().toString();
+        return Path.of(inputFileName + "_" + ohtdon + ".json");
     }
 
     @Override
