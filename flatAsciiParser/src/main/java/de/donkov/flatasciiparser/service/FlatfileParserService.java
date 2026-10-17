@@ -1,4 +1,4 @@
-package de.donkov.flatasciiparser;
+package de.donkov.flatasciiparser.service;
 
 import java.io.BufferedReader;
 import java.io.IOException;
