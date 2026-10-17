@@ -7,9 +7,11 @@ import de.donkov.flatasciiparser.model.Document;
 import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.row.Row;
 import de.donkov.flatasciiparser.output.DocumentJsonConverter;
+import de.donkov.flatasciiparser.output.JsonDocument;
 import de.donkov.flatasciiparser.output.JsonFileWriter;
 import de.donkov.flatasciiparser.service.DocumentParser;
 import de.donkov.flatasciiparser.service.FlatfileParserService;
+import de.donkov.flatasciiparser.service.JsonSchemaValidationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -33,20 +35,24 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
     private static final int EXIT_OK = 0;
     private static final int EXIT_READ_ERROR = 1;
     private static final int EXIT_USAGE_ERROR = 2;
+    private static final int EXIT_VALIDATION_ERROR = 3;
 
     private final FlatfileParserService flatfileParserService;
     private final DocumentParser documentParser;
     private final DocumentJsonConverter documentJsonConverter;
     private final JsonFileWriter jsonFileWriter;
+    private final JsonSchemaValidationService jsonSchemaValidationService;
 
     private int exitCode = EXIT_OK;
 
     public FlatAsciiParserApplication(FlatfileParserService flatfileParserService, DocumentParser documentParser,
-            DocumentJsonConverter documentJsonConverter, JsonFileWriter jsonFileWriter) {
+            DocumentJsonConverter documentJsonConverter, JsonFileWriter jsonFileWriter,
+            JsonSchemaValidationService jsonSchemaValidationService) {
         this.flatfileParserService = flatfileParserService;
         this.documentParser = documentParser;
         this.documentJsonConverter = documentJsonConverter;
         this.jsonFileWriter = jsonFileWriter;
+        this.jsonSchemaValidationService = jsonSchemaValidationService;
     }
 
     static void main(String[] args) {
@@ -70,14 +76,25 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
                 Document document = documents.get(i);
                 String ohtdon = document.getHead().getFieldValue(HeadRow.Field.OHTDON);
                 Path outputFile = outputFileName(inputFile, ohtdon);
-                jsonFileWriter.write(documentJsonConverter.convert(document), outputFile);
-                log.info("Document {} ({}): {} line items, {} head texts, {} head allowances -> {}",
+                JsonDocument json = documentJsonConverter.convert(document);
+                jsonFileWriter.write(json, outputFile);
+                log.info("Document {} ({}): {} line items, {} head texts, {} head allowances written to {}",
                         i + 1,
                         ohtdon,
                         document.getLineItems().size(),
                         document.getHeadTexts().size(),
                         document.getHeadAllowances().size(),
                         outputFile);
+
+                var violations = jsonSchemaValidationService.validate(json);
+                if (!violations.isEmpty()) {
+                    exitCode = EXIT_VALIDATION_ERROR;
+                    log.error("Output file {} violates the JSON schema:", outputFile);
+                    violations.forEach(violation ->
+                            log.error("  {}: {}", violation.getInstanceLocation(), violation.getMessage()));
+                } else {
+                    log.info("JSON of document {} successfully validated.", ohtdon);
+                }
             }
             log.info("Documents written: {}", documents.size());
         } catch (Exception e) {
