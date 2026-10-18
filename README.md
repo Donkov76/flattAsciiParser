@@ -2,7 +2,7 @@
 
 ## Verwendung
 - Kompiliert mit Java 25
-- Es ist eine SpringBoot Application daher kann die Anwendung mit `./gradlew bootRun --args <Fielname>` gestartet werden.
+- Es ist eine SpringBoot Application daher kann die Anwendung mit `./gradlew bootRun --args <Filename>` gestartet werden.
 
 ## Warum ich das so gelöst habe
 - Die Input Datei ist ja recht klein. Daher war es in Ordnung, den kompletten Inhalt in den Speicher zu laden. Bei größeren Dateien würde ich eine Zeile für Zeile verarbeiten.
