@@ -68,4 +68,13 @@ class RowParserTest {
 
         assertEquals(13, exception.getLineNumber());
     }
+
+    @Test
+    void rejectsControlCharactersOtherThanRecordDelimiter() {
+        FlatfileFormatException exception = assertThrows(FlatfileFormatException.class,
+                () -> rowParser.parse("TEXT|Zeile 1\rZeile 2||||GE", 3));
+
+        assertEquals(3, exception.getLineNumber(),
+                "A bare CR inside a record is a format violation");
+    }
 }

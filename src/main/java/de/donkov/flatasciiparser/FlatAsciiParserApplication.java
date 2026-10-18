@@ -9,6 +9,7 @@ import de.donkov.flatasciiparser.service.output.JsonFileWriter;
 import de.donkov.flatasciiparser.service.parser.DocumentParser;
 import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
 import de.donkov.flatasciiparser.service.schema.JsonSchemaValidationService;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.slf4j.Logger;
@@ -57,7 +58,8 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
     }
 
     static void main(String[] args) {
-        SpringApplication.run(FlatAsciiParserApplication.class, args);
+        System.exit(SpringApplication.exit(
+                SpringApplication.run(FlatAsciiParserApplication.class, args)));
     }
 
     @Override
@@ -70,6 +72,12 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
         }
 
         Path inputFile = Path.of(nonOptionArgs.getFirst());
+        if (!Files.exists(inputFile)) {
+            log.error("Input file not found: '{}'", inputFile);
+            exitCode = EXIT_READ_ERROR;
+            return;
+        }
+
         try {
             List<Row> records = flatfileParserService.parseRecords(inputFile);
             List<Document> documents = documentParser.parse(records);

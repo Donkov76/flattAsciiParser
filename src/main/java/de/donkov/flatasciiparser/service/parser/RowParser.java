@@ -10,8 +10,9 @@ import org.springframework.stereotype.Component;
  *
  * <p>The fields are separated by the pipe character. The record type is
  * derived from the record ID in the first field. Structural errors (unknown
- * record ID, wrong number of fields) are reported as
- * {@link FlatfileFormatException} including the line number.
+ * record ID, wrong number of fields, control characters other than the
+ * record delimiter) are reported as {@link FlatfileFormatException}
+ * including the line number.
  */
 @Component
 public class RowParser {
@@ -23,6 +24,11 @@ public class RowParser {
      * @param lineNumber the 1-based line number in the input file
      */
     public Row parse(String line, int lineNumber) {
+        if (line.chars().anyMatch(c -> c <= 0x1F || c == 0x7F)) {
+            throw new FlatfileFormatException(lineNumber,
+                    "Control characters other than the record delimiter are not allowed");
+        }
+
         String[] fields = line.split(FIELD_SEPARATOR, -1);
 
         RecordType type;

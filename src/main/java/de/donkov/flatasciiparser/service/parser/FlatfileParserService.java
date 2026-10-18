@@ -1,7 +1,6 @@
 package de.donkov.flatasciiparser.service.parser;
 
 import de.donkov.flatasciiparser.model.row.Row;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -12,17 +11,21 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 /**
- * Reads the ASCII flatfile record by record and parses each line into a
+ * Reads the ASCII flatfile record by record and parses each record into a
  * {@link Row}.
  *
- * <p>A record is complete as soon as the record delimiter CRLF (x'0D0A') has
- * occurred. Non-ASCII characters (e.g. German umlauts) are encoded as single
- * bytes, so the file is read with ISO-8859-1.
+ * <p>Records are delimited by CRLF (x'0D0A'). The file is read completely
+ * and split at the record delimiter: the input files are small enough that
+ * streaming is not necessary. Control characters other than the record
+ * delimiter are not allowed by the file structure specification and are
+ * rejected by the {@link RowParser}. Non-ASCII characters (e.g. German
+ * umlauts) are encoded as single bytes, so the file is read with ISO-8859-1.
  */
 @Service
 public class FlatfileParserService {
 
     private static final Charset FILE_CHARSET = StandardCharsets.ISO_8859_1;
+    private static final String RECORD_DELIMITER = "\r\n";
 
     private final RowParser rowParser;
 
@@ -36,43 +39,20 @@ public class FlatfileParserService {
      * @return the parsed rows of the file, in file order
      */
     public List<Row> parseRecords(Path inputFile) throws IOException {
-        try (BufferedReader reader = Files.newBufferedReader(inputFile, FILE_CHARSET)) {
-            List<Row> records = new ArrayList<>();
-            String line;
-            int lineNumber = 0;
-            while ((line = readLine(reader)) != null) {
-                lineNumber++;
-                records.add(rowParser.parse(line, lineNumber));
-            }
-            return records;
-        }
-    }
+        String[] records = Files.readString(inputFile, FILE_CHARSET)
+                .split(RECORD_DELIMITER, -1);
 
-    /**
-     * Reads a single record. Characters are read until the record delimiter
-     * CRLF has occurred; the returned record does not contain the delimiter.
-     *
-     * @return the next record, or {@code null} if the end of the file has
-     *         been reached
-     */
-    private String readLine(BufferedReader reader) throws IOException {
-        StringBuilder record = new StringBuilder();
-        int c;
-        while ((c = reader.read()) != -1) {
-            if (c == '\r') {
-                int next = reader.read();
-                if (next == '\n') {
-                    return record.toString();
-                }
-                record.append('\r');
-                if (next == -1) {
-                    return record.toString();
-                }
-                record.append((char) next);
-            } else {
-                record.append((char) c);
+        List<Row> rows = new ArrayList<>();
+        // A record is never empty: every record starts with its record ID.
+        // An empty last element is the file's trailing delimiter; an empty
+        // element in between is a format violation that the RowParser
+        // rejects with the matching line number.
+        for (int i = 0; i < records.length; i++) {
+            if (i == records.length - 1 && records[i].isEmpty()) {
+                break;
             }
+            rows.add(rowParser.parse(records[i], i + 1));
         }
-        return record.isEmpty() ? null : record.toString();
+        return rows;
     }
 }
