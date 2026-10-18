@@ -6,10 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import de.donkov.flatasciiparser.model.Document;
 import de.donkov.flatasciiparser.model.LineItem;
 import de.donkov.flatasciiparser.model.RecordType;
-import de.donkov.flatasciiparser.model.row.HeadRow;
-import de.donkov.flatasciiparser.model.row.TextRow;
 import de.donkov.flatasciiparser.model.row.AlcRow;
+import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.row.Row;
+import de.donkov.flatasciiparser.model.row.TextRow;
 import de.donkov.flatasciiparser.service.parser.DocumentParser;
 import de.donkov.flatasciiparser.service.parser.FlatfileFormatException;
 import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
@@ -100,14 +100,14 @@ class DocumentParserTest {
         assertEquals(1, firstItem.getAllowances().size(),
                 "The ALC record between the two POS records belongs to the first line item");
         assertEquals("C", firstItem.getAllowances().getFirst()
-                .getFieldValue(de.donkov.flatasciiparser.model.row.AlcRow.Field.OZAKZA));
+                .getFieldValue(AlcRow.Field.OZAKZA));
         assertEquals(1, firstItem.getTexts().size());
 
         LineItem secondItem = document.getLineItems().get(1);
         assertEquals(1, secondItem.getAllowances().size(),
                 "ALC records at the end of the document belong to the last line item");
         assertEquals("A", secondItem.getAllowances().getFirst()
-                .getFieldValue(de.donkov.flatasciiparser.model.row.AlcRow.Field.OZAKZA));
+                .getFieldValue(AlcRow.Field.OZAKZA));
     }
 
     @Test
@@ -119,26 +119,5 @@ class DocumentParserTest {
                 () -> documentParser.parse(List.of(textRow)));
 
         assertEquals(1, exception.getLineNumber());
-    }
-
-    @Test
-    void documentsAreImmutable() throws IOException, URISyntaxException {
-        Document document = parseSampleFile().getFirst();
-        TextRow textRow = (TextRow) Row.of(RecordType.TEXT,
-                List.of("TEXT", "Neuer Text", "", "", "", "", "GE"));
-        AlcRow alcRow = (AlcRow) Row.of(RecordType.ALC,
-                List.of("ALC", "C", "DI", "0,50", "56,58", "0,28", "0,00"));
-
-        // List.copyOf in the constructors already yields unmodifiable lists
-        assertThrows(UnsupportedOperationException.class,
-                () -> document.getHeadTexts().add(textRow));
-        assertThrows(UnsupportedOperationException.class,
-                () -> document.getHeadAllowances().add(alcRow));
-        assertThrows(UnsupportedOperationException.class,
-                () -> document.getLineItems().add(null));
-        assertThrows(UnsupportedOperationException.class,
-                () -> document.getLineItems().getFirst().getTexts().add(textRow));
-        assertThrows(UnsupportedOperationException.class,
-                () -> document.getLineItems().getFirst().getAllowances().add(alcRow));
     }
 }

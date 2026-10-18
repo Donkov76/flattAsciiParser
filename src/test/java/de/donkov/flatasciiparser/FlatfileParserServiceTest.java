@@ -3,8 +3,8 @@ package de.donkov.flatasciiparser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.RecordType;
+import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.row.Row;
 import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
 import de.donkov.flatasciiparser.service.parser.RowParser;

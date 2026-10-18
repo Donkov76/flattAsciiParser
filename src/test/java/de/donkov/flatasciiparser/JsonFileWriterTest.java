@@ -1,13 +1,13 @@
 package de.donkov.flatasciiparser;
 
-import de.donkov.flatasciiparser.model.json.JsonDocument;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.donkov.flatasciiparser.model.Document;
+import de.donkov.flatasciiparser.model.json.JsonDocument;
+import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
 import de.donkov.flatasciiparser.service.output.EmptyValueMode;
 import de.donkov.flatasciiparser.service.output.JsonFileWriter;
@@ -27,8 +27,9 @@ import org.junit.jupiter.api.io.TempDir;
  */
 class JsonFileWriterTest {
 
-    private final DocumentJsonConverterService documentJsonConverter = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
-    private final JsonFileWriter jsonFileWriter = new JsonFileWriter(new ObjectMapper());
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final DocumentJsonConverterService documentJsonConverterService = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
+    private final JsonFileWriter jsonFileWriter = new JsonFileWriter(objectMapper);
 
     @TempDir
     Path tempDir;
@@ -36,15 +37,15 @@ class JsonFileWriterTest {
     @Test
     void writesDocumentAccordingToNamingSchema() throws IOException, URISyntaxException {
         Document firstDocument = parseSampleFile().getFirst();
-        String ohtdon = firstDocument.getHead().getFieldValue(de.donkov.flatasciiparser.model.row.HeadRow.Field.OHTDON);
+        String ohtdon = firstDocument.getHead().getFieldValue(HeadRow.Field.OHTDON);
 
         Path outputFile = tempDir.resolve(
                 "4311560000000_IV_4260043070002_20200527133435" + "_" + ohtdon + ".json");
-        jsonFileWriter.write(documentJsonConverter.convert(firstDocument), outputFile);
+        jsonFileWriter.write(documentJsonConverterService.convert(firstDocument), outputFile);
 
-        assertTrue(Files.exists(outputFile), "The output file is written next to the input file");
+        assertTrue(Files.exists(outputFile), "The output file is written");
 
-        JsonNode json = new ObjectMapper().readTree(outputFile.toFile());
+        JsonNode json = objectMapper.readTree(outputFile.toFile());
         assertEquals("HEAD", json.get("RECID").asText());
         assertEquals("IX169381", json.get("OHTDON").asText());
         assertEquals("19,00", json.get("OHTMWS").asText());
@@ -61,9 +62,9 @@ class JsonFileWriterTest {
 
         Path outputFile = tempDir.resolve("output.json");
         Files.writeString(outputFile, "old content");
-        jsonFileWriter.write(documentJsonConverter.convert(firstDocument), outputFile);
+        jsonFileWriter.write(documentJsonConverterService.convert(firstDocument), outputFile);
 
-        JsonNode json = new ObjectMapper().readTree(outputFile.toFile());
+        JsonNode json = objectMapper.readTree(outputFile.toFile());
         assertEquals("HEAD", json.get("RECID").asText(),
                 "An existing file is replaced by the new content");
     }

@@ -1,11 +1,9 @@
 package de.donkov.flatasciiparser.service.output;
 
-import de.donkov.flatasciiparser.model.json.JsonDocument;
-
-import de.donkov.flatasciiparser.model.json.JsonLineItem;
-
 import de.donkov.flatasciiparser.model.Document;
 import de.donkov.flatasciiparser.model.LineItem;
+import de.donkov.flatasciiparser.model.json.JsonDocument;
+import de.donkov.flatasciiparser.model.json.JsonLineItem;
 import de.donkov.flatasciiparser.model.row.AlcRow;
 import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.row.PosRow;

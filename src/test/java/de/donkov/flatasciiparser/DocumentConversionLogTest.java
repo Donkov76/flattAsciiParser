@@ -1,18 +1,17 @@
 package de.donkov.flatasciiparser;
 
-import de.donkov.flatasciiparser.model.json.JsonDocument;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import de.donkov.flatasciiparser.model.Document;
-import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
-import de.donkov.flatasciiparser.service.output.EmptyValueMode;
+import de.donkov.flatasciiparser.model.json.JsonDocument;
 import de.donkov.flatasciiparser.model.row.AlcRow;
 import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.row.PosRow;
 import de.donkov.flatasciiparser.model.row.Row;
 import de.donkov.flatasciiparser.model.row.RowField;
 import de.donkov.flatasciiparser.model.row.TextRow;
+import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
+import de.donkov.flatasciiparser.service.output.EmptyValueMode;
 import de.donkov.flatasciiparser.service.parser.DocumentParser;
 import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
 import de.donkov.flatasciiparser.service.parser.RowParser;
@@ -35,7 +34,7 @@ class DocumentConversionLogTest {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentConversionLogTest.class);
 
-    private final DocumentJsonConverterService documentJsonConverter = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
+    private final DocumentJsonConverterService documentJsonConverterService = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
     private final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     @Test
@@ -46,7 +45,7 @@ class DocumentConversionLogTest {
             log.info("{}  Document {} of {}  {}", "=".repeat(20), i + 1, documents.size(), "=".repeat(20));
             log.info("{}", formatDocument(documents.get(i)));
 
-            JsonDocument json = documentJsonConverter.convert(documents.get(i));
+            JsonDocument json = documentJsonConverterService.convert(documents.get(i));
             log.info("JSON:\n{}", objectMapper.writeValueAsString(json));
         }
     }

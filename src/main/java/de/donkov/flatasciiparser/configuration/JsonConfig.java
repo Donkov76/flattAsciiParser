@@ -5,8 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Provides the Jackson {@link ObjectMapper} as a bean. Spring Boot's Jackson
- * auto-configuration is not active here, so the mapper is created explicitly.
+ * Provides the Jackson {@link ObjectMapper} as a shared bean, so all
+ * components serialize with the same mapper instance.
  */
 @Configuration
 public class JsonConfig {

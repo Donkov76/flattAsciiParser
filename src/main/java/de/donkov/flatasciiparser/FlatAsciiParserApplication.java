@@ -1,11 +1,7 @@
 package de.donkov.flatasciiparser;
 
-import de.donkov.flatasciiparser.model.json.JsonDocument;
-
-import java.nio.file.Path;
-import java.util.List;
-
 import de.donkov.flatasciiparser.model.Document;
+import de.donkov.flatasciiparser.model.json.JsonDocument;
 import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.model.row.Row;
 import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
@@ -13,6 +9,8 @@ import de.donkov.flatasciiparser.service.output.JsonFileWriter;
 import de.donkov.flatasciiparser.service.parser.DocumentParser;
 import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
 import de.donkov.flatasciiparser.service.schema.JsonSchemaValidationService;
+import java.nio.file.Path;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -25,8 +23,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Entry point of the flatfile parser.
  *
  * <p>The application is started from the command line with the name of the
- * input file as the only passing parameter. The actual reading logic lives in
- * the injected {@link FlatfileParserService}.
+ * input file as its only argument. The actual work is done by the injected
+ * services: reading and parsing the flatfile, grouping the records into
+ * documents, converting them to JSON, writing the output files, and
+ * validating them against the JSON schema.
  */
 @SpringBootApplication
 public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGenerator {
@@ -40,18 +40,18 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
 
     private final FlatfileParserService flatfileParserService;
     private final DocumentParser documentParser;
-    private final DocumentJsonConverterService documentJsonConverter;
+    private final DocumentJsonConverterService documentJsonConverterService;
     private final JsonFileWriter jsonFileWriter;
     private final JsonSchemaValidationService jsonSchemaValidationService;
 
     private int exitCode = EXIT_OK;
 
     public FlatAsciiParserApplication(FlatfileParserService flatfileParserService, DocumentParser documentParser,
-            DocumentJsonConverterService documentJsonConverter, JsonFileWriter jsonFileWriter,
+            DocumentJsonConverterService documentJsonConverterService, JsonFileWriter jsonFileWriter,
             JsonSchemaValidationService jsonSchemaValidationService) {
         this.flatfileParserService = flatfileParserService;
         this.documentParser = documentParser;
-        this.documentJsonConverter = documentJsonConverter;
+        this.documentJsonConverterService = documentJsonConverterService;
         this.jsonFileWriter = jsonFileWriter;
         this.jsonSchemaValidationService = jsonSchemaValidationService;
     }
@@ -77,7 +77,7 @@ public class FlatAsciiParserApplication implements ApplicationRunner, ExitCodeGe
                 Document document = documents.get(i);
                 String ohtdon = document.getHead().getFieldValue(HeadRow.Field.OHTDON);
                 Path outputFile = outputFileName(inputFile, ohtdon);
-                JsonDocument json = documentJsonConverter.convert(document);
+                JsonDocument json = documentJsonConverterService.convert(document);
                 jsonFileWriter.write(json, outputFile);
                 log.info("Document {} ({}): {} line items, {} head texts, {} head allowances written to {}",
                         i + 1,

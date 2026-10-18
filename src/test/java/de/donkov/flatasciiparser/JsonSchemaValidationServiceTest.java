@@ -1,19 +1,19 @@
 package de.donkov.flatasciiparser;
 
-import de.donkov.flatasciiparser.model.json.JsonDocument;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.donkov.flatasciiparser.model.Document;
+import de.donkov.flatasciiparser.model.json.JsonDocument;
+import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
 import de.donkov.flatasciiparser.service.output.EmptyValueMode;
 import de.donkov.flatasciiparser.service.parser.DocumentParser;
 import de.donkov.flatasciiparser.service.parser.FlatfileParserService;
-import de.donkov.flatasciiparser.service.schema.JsonSchemaValidationService;
 import de.donkov.flatasciiparser.service.parser.RowParser;
+import de.donkov.flatasciiparser.service.schema.JsonSchemaValidationService;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
  */
 class JsonSchemaValidationServiceTest {
 
-    private final DocumentJsonConverterService documentJsonConverter = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
+    private final DocumentJsonConverterService documentJsonConverterService = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
     private final JsonSchemaValidationService validationService =
             new JsonSchemaValidationService(new ObjectMapper(), true);
 
@@ -48,7 +48,7 @@ class JsonSchemaValidationServiceTest {
     void documentWithPosAllowancesIsValid() throws IOException, URISyntaxException {
         // The original sample flatfile contains no POS with ALC records, so a
         // separate sample flatfile covers this variant
-        JsonDocument json = documentJsonConverter.convert(
+        JsonDocument json = documentJsonConverterService.convert(
                 parseFlatfile("flatfile/sample-pos-alc.txt").getFirst());
 
         assertTrue(validationService.validate(json).isEmpty(),
@@ -60,10 +60,9 @@ class JsonSchemaValidationServiceTest {
         List<Document> documents = parseSampleFile();
 
         for (Document document : documents) {
-            JsonDocument json = documentJsonConverter.convert(document);
+            JsonDocument json = documentJsonConverterService.convert(document);
             assertTrue(validationService.validate(json).isEmpty(),
-                    "Document " + document.getHead().getFieldValue(
-                            de.donkov.flatasciiparser.model.row.HeadRow.Field.OHTDON)
+                    "Document " + document.getHead().getFieldValue(HeadRow.Field.OHTDON)
                             + " must be valid against the JSON schema");
         }
     }
@@ -82,7 +81,7 @@ class JsonSchemaValidationServiceTest {
 
     @Test
     void detectsInvalidValues() throws IOException, URISyntaxException {
-        JsonDocument json = documentJsonConverter.convert(parseSampleFile().getFirst());
+        JsonDocument json = documentJsonConverterService.convert(parseSampleFile().getFirst());
 
         json.put("OHTMWS", "invalid rate");
         json.put("OHTDOD", "07.05.2020");
@@ -98,7 +97,7 @@ class JsonSchemaValidationServiceTest {
 
     @Test
     void detectsMissingFields() throws IOException, URISyntaxException {
-        JsonDocument json = documentJsonConverter.convert(parseSampleFile().getFirst());
+        JsonDocument json = documentJsonConverterService.convert(parseSampleFile().getFirst());
 
         json.remove("OHTDON");
 
@@ -110,7 +109,7 @@ class JsonSchemaValidationServiceTest {
     void skipsValidationWhenDisabled() throws IOException, URISyntaxException {
         JsonSchemaValidationService disabledService =
                 new JsonSchemaValidationService(new ObjectMapper(), false);
-        JsonDocument json = documentJsonConverter.convert(parseSampleFile().getFirst());
+        JsonDocument json = documentJsonConverterService.convert(parseSampleFile().getFirst());
         json.put("OHTMWS", "invalid rate");
 
         assertTrue(disabledService.validate(json).isEmpty(),

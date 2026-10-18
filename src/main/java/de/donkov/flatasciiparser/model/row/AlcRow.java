@@ -33,7 +33,6 @@ public final class AlcRow extends Row {
             return description;
         }
 
-
         @Override
         public RecordType getRecordType() {
             return RecordType.ALC;

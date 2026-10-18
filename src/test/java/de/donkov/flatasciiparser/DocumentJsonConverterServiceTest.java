@@ -1,13 +1,12 @@
 package de.donkov.flatasciiparser;
 
-import de.donkov.flatasciiparser.model.json.JsonDocument;
-
-import de.donkov.flatasciiparser.model.json.JsonLineItem;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import de.donkov.flatasciiparser.model.Document;
+import de.donkov.flatasciiparser.model.json.JsonDocument;
+import de.donkov.flatasciiparser.model.json.JsonLineItem;
+import de.donkov.flatasciiparser.model.row.HeadRow;
 import de.donkov.flatasciiparser.service.output.DocumentJsonConverterService;
 import de.donkov.flatasciiparser.service.output.EmptyValueMode;
 import de.donkov.flatasciiparser.service.parser.DocumentParser;
@@ -26,7 +25,7 @@ import org.junit.jupiter.api.Test;
  */
 class DocumentJsonConverterServiceTest {
 
-    private final DocumentJsonConverterService documentJsonConverter = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
+    private final DocumentJsonConverterService documentJsonConverterService = new DocumentJsonConverterService(EmptyValueMode.EMPTY_STRING);
 
     private List<Document> documents;
 
@@ -44,7 +43,7 @@ class DocumentJsonConverterServiceTest {
 
     @Test
     void mapsHeadFieldsInSpecificationOrder() {
-        JsonDocument json = documentJsonConverter.convert(documents.getFirst());
+        JsonDocument json = documentJsonConverterService.convert(documents.getFirst());
 
         List<String> keys = List.copyOf(json.keySet());
         assertEquals("RECID", keys.getFirst());
@@ -58,7 +57,7 @@ class DocumentJsonConverterServiceTest {
 
     @Test
     void mapsHeadFieldValuesAsStrings() {
-        JsonDocument json = documentJsonConverter.convert(documents.getFirst());
+        JsonDocument json = documentJsonConverterService.convert(documents.getFirst());
 
         assertEquals("HEAD", json.get("RECID"));
         assertEquals("4311560000000", json.get("OHTRCP"));
@@ -70,7 +69,7 @@ class DocumentJsonConverterServiceTest {
 
     @Test
     void mapsNestedRecords() {
-        JsonDocument json = documentJsonConverter.convert(documents.getFirst());
+        JsonDocument json = documentJsonConverterService.convert(documents.getFirst());
 
         @SuppressWarnings("unchecked")
         List<Map<String, String>> headTexts = (List<Map<String, String>>) json.get(JsonDocument.HEAD_TEXT);
@@ -93,10 +92,10 @@ class DocumentJsonConverterServiceTest {
     @Test
     void mapsLineItemWithTexts() {
         Document document = documents.stream()
-                .filter(d -> "IX169481".equals(d.getHead().getFieldValue(de.donkov.flatasciiparser.model.row.HeadRow.Field.OHTDON)))
+                .filter(d -> "IX169481".equals(d.getHead().getFieldValue(HeadRow.Field.OHTDON)))
                 .findFirst()
                 .orElseThrow();
-        JsonDocument json = documentJsonConverter.convert(document);
+        JsonDocument json = documentJsonConverterService.convert(document);
 
         List<JsonLineItem> lineItems = (List<JsonLineItem>) json.get(JsonDocument.POS);
         JsonLineItem firstItem = lineItems.getFirst();
@@ -111,7 +110,7 @@ class DocumentJsonConverterServiceTest {
         // The original sample flatfile contains no POS with ALC records, so a
         // separate sample flatfile covers this variant
         Document document = parseFlatfile("flatfile/sample-pos-alc.txt").getFirst();
-        JsonDocument json = documentJsonConverter.convert(document);
+        JsonDocument json = documentJsonConverterService.convert(document);
 
         List<JsonLineItem> lineItems = (List<JsonLineItem>) json.get(JsonDocument.POS);
 
@@ -146,8 +145,8 @@ class DocumentJsonConverterServiceTest {
         DocumentJsonConverterService nullModeConverter = new DocumentJsonConverterService(EmptyValueMode.NULL);
         JsonDocument json = nullModeConverter.convert(documents.getFirst());
 
-        assertNull(json.get("OHTPDF"), "Empty HEAD field becomes JSON null in NULL mode");
-        assertNull(json.get("OHTLN2"), "Empty name field becomes JSON null in NULL mode");
+        assertNull(json.get(HeadRow.Field.OHTPDF.name()), "Empty HEAD field becomes JSON null in NULL mode");
+        assertNull(json.get(HeadRow.Field.OHTLN2.name()), "Empty name field becomes JSON null in NULL mode");
         assertEquals("HEAD", json.get("RECID"), "Non-empty values are unaffected");
     }
 }
