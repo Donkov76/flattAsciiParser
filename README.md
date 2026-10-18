@@ -11,4 +11,5 @@
 - Da es sich um sehr viele Felder handelt, habe ich nur in eine abstrakte Struktur geparsed. (model.row.*).
   - Reicht aus um es gut debuggen zu können. 
   - Dadurch konnte dann auch die Umwandlung in das Ziel JSON ohne viel Mapping Code erfolgen.
-- Zum testen habe ich eine zusätzliche Datei sample-pos-alc.txt angelegt. Da die erlaubte Variante POS mit ALC in den Beispieldaten nicht vorkam.
+  - Überführung in ein konkreteres Modell hätte für viel mehr Code beim Mapping ins JSON Zielformat geführt.
+- Zum testen habe ich eine zusätzliche Datei sample-pos-alc.txt angelegt. Da die erlaubte Variante POS mit LC in den Beispieldaten nicht vorkam.
